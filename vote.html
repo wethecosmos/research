@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 방탈출 장르별 우수 테마 투표</title>
+    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .badge-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        
+        .badge {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            cursor: grab;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .badge:active {
+            cursor: grabbing;
+        }
+        
+        .badge:hover {
+            transform: scale(1.1);
+        }
+        
+        .badge.gold {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+        }
+        
+        .badge.silver {
+            background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+        }
+        
+        .badge.bronze {
+            background: linear-gradient(135deg, #cd7f32, #e69a5a);
+        }
+        
+        .badge.dragging {
+            opacity: 0.5;
+        }
+        
+        .category {
+            margin-bottom: 50px;
+        }
+        
+        .category-title {
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .themes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .theme-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            background: white;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .theme-card:hover {
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+        }
+        
+        .theme-card.drop-zone-active {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .theme-poster {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f5f5f5;
+        }
+        
+        .theme-name {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .store-name {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .badge-drop-zone {
+            min-height: 50px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background: #fafafa;
+        }
+        
+        .badge-drop-zone.has-badge {
+            border-style: solid;
+            border-color: transparent;
+            background: transparent;
+        }
+        
+        .placed-badge {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        
+        .submit-btn {
+            display: block;
+            width: 300px;
+            margin: 40px auto;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .results-container {
+            display: none;
+        }
+        
+        .results-container.show {
+            display: block;
+        }
+        
+        .result-category {
+            margin-bottom: 40px;
+        }
+        
+        .result-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .result-rank {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-right: 15px;
+            min-width: 40px;
+        }
+        
+        .result-info {
+            flex: 1;
+        }
+        
+        .result-theme {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+        
+        .result-store {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .result-points {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #764ba2;
+            margin-left: 20px;
+        }
+        
+        .result-badges {
+            display: flex;
+            gap: 10px;
+            margin-left: 20px;
+        }
+        
+        .result-badge-count {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
+        }
+        
+        .store-rankings {
+            margin-top: 50px;
+            padding: 30px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-radius: 15px;
+        }
+        
+        .store-rankings h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .store-rank-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #667eea;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 20px;
+            background: #fee;
+            color: #c00;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .info-box {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .info-box ul {
+            margin-left: 20px;
+            color: #555;
+        }
+        
+        .info-box li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 2025 방탈출 장르별 우수 테마 투표</h1>
+        <p class="subtitle">각 부문별로 금🥇·은🥈·동🥉 메달을 드래그하여 테마에 배치해주세요!</p>
+        
+        <div id="votingSection">
+            <div class="info-box">
+                <h3>📋 투표 방법</h3>
+                <ul>
+                    <li>각 부문별로 금🥇·은🥈·동🥉 메달을 테마 카드에 드래그하여 배치하세요</li>
+                    <li>플레이하지 않은 테마는 메달을 배치하지 않아도 됩니다</li>
+                    <li>1개의 테마에만 메달을 주는 것도 가능합니다</li>
+                    <li>배치한 메달을 클릭하면 다시 제거할 수 있습니다</li>
+                </ul>
+            </div>
+            
+            <div id="categoriesContainer"></div>
+            
+            <button class="submit-btn" onclick="submitVote()">투표 제출하기</button>
+        </div>
+        
+        <div id="resultsSection" class="results-container">
+            <h2 style="text-align: center; margin-bottom: 30px;">📊 투표 결과</h2>
+            <div id="resultsContainer"></div>
+            <div class="store-rankings">
+                <h2>🏆 TOP 5 매장</h2>
+                <div id="storeRankings"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API 엔드포인트 (API 키는 서버에서 관리)
+        const API_URL = 'https://zucyrthaumdzgwtddren.supabase.co/functions/v1/vote-api';
+        
+        // 테마 데이터
+        const themes = [
+            {category: '공포 부문', name: '나폴리탄', store: '둠이스케이프 1호점'},
+            {category: '공포 부문', name: '버디', store: '오늘의 한 페이지'},
+            {category: '공포 부문', name: '악녀 - 은화기숙학원', store: '러시아워 시네마틱'},
+            {category: '공포 부문', name: '피노키오', store: '지구별 방탈출 홍대어드벤쳐점'},
+            {category: '공포 부문', name: 'AYAKO', store: '후즈데어'},
+            {category: '공포 부문', name: 'Chapter 01 : 선택', store: '더챕터'},
+            {category: '공포 부문', name: 'PIG', store: '쇼룸'},
+            {category: '감성/로맨스/판타지 부문', name: '외로움과 고독사이', store: '익스플로리아 이스케이프'},
+            {category: '감성/로맨스/판타지 부문', name: '플라이 미 투 더 문', store: '룸익스케이프 인디고블루점'},
+            {category: '감성/로맨스/판타지 부문', name: '행복목욕탕', store: '상상의문 부평점'},
+            {category: '감성/로맨스/판타지 부문', name: '행운의 배달부 루시', store: '셜록홈즈 부천중동점'},
+            {category: '감성/로맨스/판타지 부문', name: 'Les Portrait', store: '초상화'},
+            {category: 'SF/액션/어드벤쳐 부문', name: '아내, 유하린 37세', store: '셜록홈즈 잠실새내점'},
+            {category: 'SF/액션/어드벤쳐 부문', name: '카부트', store: '지구별 방탈출 홍대라스트시티점'},
+            {category: 'SF/액션/어드벤쳐 부문', name: 'alone', store: '지구별 방탈출 홍대라스트시티점'},
+            {category: '스릴러/추리/미스터리 부문', name: '두껍아 두껍아 헌집줄게 새집다오', store: '토끼굴'},
+            {category: '스릴러/추리/미스터리 부문', name: '생존자', store: '넥스트에디션 건대 2호점'},
+            {category: '스릴러/추리/미스터리 부문', name: '오모테나시', store: '서울이스케이프룸 대구동성로점'},
+            {category: '스릴러/추리/미스터리 부문', name: '잔향', store: '지구별 방탈출 홍대어드벤쳐점'},
+            {category: '스릴러/추리/미스터리 부문', name: '투투 어드벤쳐', store: '후즈데어'},
+            {category: '스릴러/추리/미스터리 부문', name: 'Chapter 02 : 쿠키', store: '더챕터'},
+            {category: '스릴러/추리/미스터리 부문', name: 'NOSTALGIA VISTA', store: '키이스케이프 강남 스테이션점'},
+            {category: '문제/아케이드 부문', name: '게임의 법칙', store: '티켓 투 이스케이프'},
+            {category: '문제/아케이드 부문', name: '메가 게임', store: '룸즈에이 강남점'},
+            {category: '문제/아케이드 부문', name: '하이 맥스', store: '오아시스'},
+            {category: '문제/아케이드 부문', name: '호텔 더 게임', store: '셜록홈즈 수지구청점'},
+            {category: '문제/아케이드 부문', name: 'Escape Company', store: '이스케이프월드'},
+            {category: '코믹 부문', name: '(수)산업스파이', store: '코드이스케이프 가로수길점'},
+            {category: '코믹 부문', name: '용하다 용해!! 용팔도령', store: '오늘의 한 페이지'},
+            {category: '코믹 부문', name: 'OKCUT', store: '상상의문 수원2호점'},
+            {category: '장치연출 부문', name: '당신 없이는', store: '이머시브 스튜디오'},
+            {category: '장치연출 부문', name: '생존자', store: '넥스트에디션 건대 2호점'},
+            {category: '장치연출 부문', name: '오모테나시', store: '서울이스케이프룸 대구동성로점'},
+            {category: '장치연출 부문', name: '피노키오', store: '지구별 방탈출 홍대어드벤쳐점'},
+            {category: '장치연출 부문', name: 'AYAKO', store: '후즈데어'},
+            {category: '장치연출 부문', name: 'Chapter 01 : 선택', store: '더챕터'},
+            {category: '장치연출 부문', name: 'OKCUT', store: '상상의문 수원2호점'},
+            {category: '연기연출 부문', name: '당신 없이는', store: '이머시브 스튜디오'},
+            {category: '연기연출 부문', name: '생존자', store: '넥스트에디션 건대 2호점'},
+            {category: '연기연출 부문', name: '용하다 용해!! 용팔도령', store: '오늘의 한 페이지'},
+            {category: '연기연출 부문', name: '춘화각 : 피할 수 없는 저주', store: '상상의문 수원2호점'},
+            {category: '연기연출 부문', name: '피노키오', store: '지구별 방탈출 홍대어드벤쳐점'},
+            {category: '연기연출 부문', name: 'AYAKO', store: '후즈데어'},
+            {category: '인테리어 부문', name: '생존자', store: '넥스트에디션 건대 2호점'},
+            {category: '인테리어 부문', name: '오모테나시', store: '서울이스케이프룸 대구동성로점'},
+            {category: '인테리어 부문', name: '잔향', store: '지구별 방탈출 홍대어드벤쳐점'},
+            {category: '인테리어 부문', name: '플라이 미 투 더 문', store: '룸익스케이프 인디고블루점'},
+            {category: '인테리어 부문', name: 'AYAKO', store: '후즈데어'},
+            {category: '올해의 테마 부문', name: '메가 게임', store: '룸즈에이 강남점'},
+            {category: '올해의 테마 부문', name: '생존자', store: '넥스트에디션 건대 2호점'},
+            {category: '올해의 테마 부문', name: '오모테나시', store: '서울이스케이프룸 대구동성로점'},
+            {category: '올해의 테마 부문', name: '잔향', store: '지구별 방탈출 홍대어드벤쳐점'},
+            {category: '올해의 테마 부문', name: '피노키오', store: '지구별 방탈출 홍대어드벤쳐점'},
+            {category: '올해의 테마 부문', name: 'AYAKO', store: '후즈데어'},
+            {category: '올해의 테마 부문', name: 'Chapter 01 : 선택', store: '더챕터'}
+        ];
+        
+        // 카테고리별로 그룹화
+        const categorizedThemes = {};
+        themes.forEach(theme => {
+            if (!categorizedThemes[theme.category]) {
+                categorizedThemes[theme.category] = [];
+            }
+            categorizedThemes[theme.category].push(theme);
+        });
+        
+        // 투표 데이터 저장
+        const voteData = {};
+        
+        // 페이지 로드시 초기화
+        let hasVoted = false;
+        let fingerprint = '';
+        
+        async function init() {
+            // Fingerprint 생성
+            const fp = await FingerprintJS.load();
+            const result = await fp.get();
+            fingerprint = result.visitorId;
+            
+            // 투표 여부 확인
+            const voted = localStorage.getItem('hasVoted');
+            if (voted === 'true') {
+                await checkVoteStatus();
+            } else {
+                renderVotingUI();
+            }
+        }
+        
+        async function checkVoteStatus() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'check-vote',
+                        fingerprint
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.hasVoted) {
+                    hasVoted = true;
+                    await showResults();
+                } else {
+                    localStorage.removeItem('hasVoted');
+                    renderVotingUI();
+                }
+            } catch (err) {
+                console.error('투표 확인 오류:', err);
+                renderVotingUI();
+            }
+        }
+        
+        function renderVotingUI() {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = '';
+            
+            Object.keys(categorizedThemes).forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                
+                const categoryTitle = document.createElement('h2');
+                categoryTitle.className = 'category-title';
+                categoryTitle.textContent = category;
+                categoryDiv.appendChild(categoryTitle);
+                
+                // 뱃지 컨테이너
+                const badgeContainer = document.createElement('div');
+                badgeContainer.className = 'badge-container';
+                badgeContainer.innerHTML = `
+                    <div class="badge gold" draggable="true" data-rank="1" data-category="${category}">🥇</div>
+                    <div class="badge silver" draggable="true" data-rank="2" data-category="${category}">🥈</div>
+                    <div class="badge bronze" draggable="true" data-rank="3" data-category="${category}">🥉</div>
+                `;
+                categoryDiv.appendChild(badgeContainer);
+                
+                // 테마 그리드
+                const themesGrid = document.createElement('div');
+                themesGrid.className = 'themes-grid';
+                
+                categorizedThemes[category].forEach(theme => {
+                    const themeCard = document.createElement('div');
+                    themeCard.className = 'theme-card';
+                    themeCard.dataset.category = category;
+                    themeCard.dataset.theme = theme.name;
+                    themeCard.dataset.store = theme.store;
+                    
+                    themeCard.innerHTML = `
+                        <img class="theme-poster" src="ai/crm/포스터/${theme.name}.jpg" 
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22200%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22280%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22%3E포스터 준비중%3C/text%3E%3C/svg%3E'" 
+                             alt="${theme.name}">
+                        <div class="theme-name">${theme.name}</div>
+                        <div class="store-name">${theme.store}</div>
+                        <div class="badge-drop-zone" data-category="${category}" data-theme="${theme.name}">
+                            메달을 드래그하여 배치하세요
+                        </div>
+                    `;
+                    
+                    themesGrid.appendChild(themeCard);
+                });
+                
+                categoryDiv.appendChild(themesGrid);
+                container.appendChild(categoryDiv);
+            });
+            
+            // 드래그 앤 드롭 이벤트 설정
+            setupDragAndDrop();
+        }
+        
+        function setupDragAndDrop() {
+            const badges = document.querySelectorAll('.badge');
+            const dropZones = document.querySelectorAll('.badge-drop-zone');
+            
+            badges.forEach(badge => {
+                badge.addEventListener('dragstart', handleDragStart);
+                badge.addEventListener('dragend', handleDragEnd);
+            });
+            
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('drop', handleDrop);
+                zone.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+        
+        let draggedElement = null;
+        
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+        
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            const category = draggedElement.dataset.category;
+            const zoneCategory = e.currentTarget.dataset.category;
+            
+            if (category === zoneCategory && !e.currentTarget.classList.contains('has-badge')) {
+                e.currentTarget.closest('.theme-card').classList.add('drop-zone-active');
+            }
+        }
+        
+        function handleDragLeave(e) {
+            e.currentTarget.closest('.theme-card').classList.remove('drop-zone-active');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.closest('.theme-card').classList.remove('drop-zone-active');
+            
+            const category = draggedElement.dataset.category;
+            const zoneCategory = e.currentTarget.dataset.category;
+            const rank = draggedElement.dataset.rank;
+            const theme = e.currentTarget.dataset.theme;
+            
+            if (category !== zoneCategory || e.currentTarget.classList.contains('has-badge')) {
+                return;
+            }
+            
+            // 같은 카테고리에서 같은 랭크가 이미 배치되어 있는지 확인
+            const existingBadge = document.querySelector(
+                `.placed-badge[data-category="${category}"][data-rank="${rank}"]`
+            );
+            if (existingBadge) {
+                const oldZone = existingBadge.parentElement;
+                oldZone.innerHTML = '메달을 드래그하여 배치하세요';
+                oldZone.classList.remove('has-badge');
+                
+                const oldTheme = oldZone.dataset.theme;
+                delete voteData[`${category}|${oldTheme}`];
+            }
+            
+            // 뱃지 배치
+            const badgeClass = rank === '1' ? 'gold' : rank === '2' ? 'silver' : 'bronze';
+            const badgeIcon = rank === '1' ? '🥇' : rank === '2' ? '🥈' : '🥉';
+            
+            e.currentTarget.innerHTML = `
+                <div class="placed-badge ${badgeClass}" 
+                     data-category="${category}" 
+                     data-rank="${rank}"
+                     onclick="removeBadge(this)">
+                    ${badgeIcon}
+                </div>
+            `;
+            e.currentTarget.classList.add('has-badge');
+            
+            // 투표 데이터 저장
+            voteData[`${category}|${theme}`] = {
+                category,
+                theme,
+                store: e.currentTarget.closest('.theme-card').dataset.store,
+                rank: parseInt(rank)
+            };
+        }
+        
+        function removeBadge(badge) {
+            const zone = badge.parentElement;
+            const category = badge.dataset.category;
+            const theme = zone.dataset.theme;
+            
+            zone.innerHTML = '메달을 드래그하여 배치하세요';
+            zone.classList.remove('has-badge');
+            
+            delete voteData[`${category}|${theme}`];
+        }
+        
+        async function submitVote() {
+            if (Object.keys(voteData).length === 0) {
+                alert('최소 1개 이상의 테마에 메달을 배치해주세요!');
+                return;
+            }
+            
+            if (!confirm('투표를 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.')) {
+                return;
+            }
+            
+            try {
+                // IP 주소 가져오기
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                const ipAddress = ipData.ip;
+                
+                // 투표 제출
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'submit-vote',
+                        ipAddress,
+                        fingerprint,
+                        votes: Object.values(voteData)
+                    })
+                });
+                
+                if (response.status === 409) {
+                    alert('이미 투표하셨습니다!');
+                    localStorage.setItem('hasVoted', 'true');
+                    await showResults();
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                localStorage.setItem('hasVoted', 'true');
+                alert('투표가 완료되었습니다! 결과를 확인하세요.');
+                await showResults();
+                
+            } catch (error) {
+                console.error('투표 제출 오류:', error);
+                alert('투표 제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+            }
+        }
+        
+        async function showResults() {
+            document.getElementById('votingSection').style.display = 'none';
+            document.getElementById('resultsSection').classList.add('show');
+            
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = '<div class="loading">결과를 불러오는 중...</div>';
+            
+            try {
+                // 카테고리별 결과 조회
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'get-results' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error);
+                
+                const results = data.results;
+                
+                // 카테고리별로 그룹화
+                const resultsByCategory = {};
+                results.forEach(result => {
+                    if (!resultsByCategory[result.category]) {
+                        resultsByCategory[result.category] = [];
+                    }
+                    resultsByCategory[result.category].push(result);
+                });
+                
+                // 결과 렌더링
+                resultsContainer.innerHTML = '';
+                Object.keys(resultsByCategory).forEach(category => {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'result-category';
+                    
+                    const title = document.createElement('h2');
+                    title.className = 'category-title';
+                    title.textContent = category;
+                    categoryDiv.appendChild(title);
+                    
+                    resultsByCategory[category].forEach((result, index) => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'result-item';
+                        resultItem.innerHTML = `
+                            <div class="result-rank">${index + 1}</div>
+                            <div class="result-info">
+                                <div class="result-theme">${result.theme_name}</div>
+                                <div class="result-store">${result.store_name}</div>
+                            </div>
+                            <div class="result-badges">
+                                <span class="result-badge-count">🥇 ${result.gold_count}</span>
+                                <span class="result-badge-count">🥈 ${result.silver_count}</span>
+                                <span class="result-badge-count">🥉 ${result.bronze_count}</span>
+                            </div>
+                            <div class="result-points">${result.total_points}점</div>
+                        `;
+                        categoryDiv.appendChild(resultItem);
+                    });
+                    
+                    resultsContainer.appendChild(categoryDiv);
+                });
+                
+                // 매장 랭킹 조회
+                await showStoreRankings();
+                
+            } catch (error) {
+                console.error('결과 조회 오류:', error);
+                resultsContainer.innerHTML = '<div class="error">결과를 불러오는 중 오류가 발생했습니다.</div>';
+            }
+        }
+        
+        async function showStoreRankings() {
+            const container = document.getElementById('storeRankings');
+            container.innerHTML = '<div class="loading">매장 순위를 불러오는 중...</div>';
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'get-store-rankings' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error);
+                
+                const rankings = data.rankings;
+                
+                container.innerHTML = '';
+                rankings.forEach((store, index) => {
+                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                    const item = document.createElement('div');
+                    item.className = 'store-rank-item';
+                    item.innerHTML = `
+                        <div class="result-rank">${medal} ${index + 1}</div>
+                        <div class="result-info">
+                            <div class="result-theme">${store.store_name}</div>
+                            <div class="result-store">테마 수: ${store.theme_count}개</div>
+                        </div>
+                        <div class="result-points">${store.total_points}점</div>
+                    `;
+                    container.appendChild(item);
+                });
+                
+            } catch (error) {
+                console.error('매장 순위 조회 오류:', error);
+                container.innerHTML = '<div class="error">매장 순위를 불러오는 중 오류가 발생했습니다.</div>';
+            }
+        }
+        
+        // 페이지 로드시 초기화
+        init();
+    </script>
+</body>
+</html>
