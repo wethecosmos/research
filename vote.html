@@ -864,12 +864,18 @@
             const floatingBadges = document.getElementById('floatingBadges');
             const badges = floatingBadges.querySelectorAll('.badge');
             const themeCards = document.querySelectorAll('.theme-card');
-            
+
             badges.forEach(badge => {
+                // 데스크톱: 드래그 이벤트
                 badge.addEventListener('dragstart', handleDragStart);
                 badge.addEventListener('dragend', handleDragEnd);
+
+                // 모바일: 터치 이벤트 추가
+                badge.addEventListener('touchstart', handleTouchStart);
+                badge.addEventListener('touchmove', handleTouchMove);
+                badge.addEventListener('touchend', handleTouchEnd);
             });
-            
+
             // 테마 카드 전체에 드롭 이벤트 적용
             themeCards.forEach(card => {
                 card.addEventListener('dragover', handleCardDragOver);
@@ -877,6 +883,108 @@
                 card.addEventListener('dragleave', handleCardDragLeave);
             });
         }
+        // 터치 이벤트 핸들러 추가
+        let touchedBadge = null;
+        let touchStartPos = { x: 0, y: 0 };
+
+        function handleTouchStart(e) {
+            touchedBadge = e.target;
+            const touch = e.touches[0];
+            touchStartPos = { x: touch.clientX, y: touch.clientY };
+            touchedBadge.classList.add('dragging');
+            e.preventDefault();
+        }
+
+        function handleTouchMove(e) {
+            if (!touchedBadge) return;
+            e.preventDefault();
+
+            const touch = e.touches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const themeCard = elementBelow?.closest('.theme-card');
+
+            // 모든 카드의 하이라이트 제거
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.classList.remove('drop-zone-active');
+            });
+
+            // 유효한 카드면 하이라이트
+            if (themeCard) {
+                const category = touchedBadge.dataset.category;
+                const cardCategory = themeCard.dataset.category;
+                const dropZone = themeCard.querySelector('.badge-drop-zone');
+
+                if (category === cardCategory && !dropZone.classList.contains('has-badge')) {
+                    themeCard.classList.add('drop-zone-active');
+                }
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!touchedBadge) return;
+
+            touchedBadge.classList.remove('dragging');
+
+            const touch = e.changedTouches[0];
+            const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const themeCard = elementBelow?.closest('.theme-card');
+
+            // 모든 카드의 하이라이트 제거
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.classList.remove('drop-zone-active');
+            });
+
+            if (themeCard) {
+                // 기존 handleCardDrop 로직 재사용
+                const category = touchedBadge.dataset.category;
+                const cardCategory = themeCard.dataset.category;
+                const rank = touchedBadge.dataset.rank;
+                const theme = themeCard.dataset.theme;
+                const dropZone = themeCard.querySelector('.badge-drop-zone');
+
+                if (category === cardCategory && !dropZone.classList.contains('has-badge')) {
+                    // 기존 배지 제거
+                    const existingBadge = document.querySelector(
+                        `.placed-badge[data-category="${category}"][data-rank="${rank}"]`
+                    );
+                    if (existingBadge) {
+                        const oldZone = existingBadge.parentElement;
+                        oldZone.innerHTML = '메달을 드래그하여 배치하세요';
+                        oldZone.classList.remove('has-badge');
+                        const oldTheme = oldZone.dataset.theme;
+                        delete voteData[`${category}|${oldTheme}`];
+                    }
+
+                    // 배지 배치
+                    const badgeClass = rank === '1' ? 'gold' : rank === '2' ? 'silver' : 'bronze';
+                    const badgeIcon = rank === '1' ? '🥇' : rank === '2' ? '🥈' : '🥉';
+
+                    dropZone.innerHTML = `
+                        <div class="placed-badge ${badgeClass}" 
+                             data-category="${category}" 
+                             data-rank="${rank}"
+                             onclick="removeBadge(this)">
+                            ${badgeIcon}
+                        </div>
+                    `;
+                    dropZone.classList.add('has-badge');
+
+                    voteData[`${category}|${theme}`] = {
+                        category,
+                        theme,
+                        store: themeCard.dataset.store,
+                        rank: parseInt(rank)
+                    };
+
+                    touchedBadge.classList.add('disabled');
+                    console.log('메달 배치:', category, theme, rank);
+                }
+            }
+
+            touchedBadge = null;
+            e.preventDefault();
+        }
+
         
         let draggedElement = null;
         
