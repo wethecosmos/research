@@ -1199,13 +1199,19 @@
                     resultsContainer.innerHTML = '<div class="info-box"><h3>아직 투표 결과가 없습니다</h3></div>';
                     return;
                 }
-                
-                // 결과 렌더링 전에 투표자 수 표시 추가
-                resultsContainer.innerHTML = `
-                    <div class="info-box" style="text-align: center; margin-bottom: 30px;">
-                        <h3>📊 현재까지 <span style="color: #667eea; font-size: 1.3em;">${totalVoters}명</span>이 투표에 참여했습니다!</h3>
-                    </div>
+
+                // innerHTML을 한 번만 사용하고 나머지는 appendChild
+                resultsContainer.innerHTML = '';
+
+                // 투표자 수 표시를 createElement로 추가
+                const voterInfoDiv = document.createElement('div');
+                voterInfoDiv.className = 'info-box';
+                voterInfoDiv.style.textAlign = 'center';
+                voterInfoDiv.style.marginBottom = '30px';
+                voterInfoDiv.innerHTML = `
+                    <h3>📊 현재까지 <span style="color: #667eea; font-size: 1.3em;">${totalVoters}명</span>이 투표에 참여했습니다!</h3>
                 `;
+                resultsContainer.appendChild(voterInfoDiv);
 
                 
                 // 카테고리별로 그룹화
