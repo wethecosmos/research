@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2025 방탈출 장르별 우수 테마 투표</title>
-    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3"></script>
+    <title>"재미로 보는" 2025 방탈출 우수 테마 투표</title>
+    
+    <!-- FingerprintJS CDN (UMD 버전) -->
+    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
+    
+    <!-- Supabase CDN (UMD 버전) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -43,13 +49,22 @@
         }
         
         .badge-container {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
-            justify-content: center;
             gap: 20px;
-            margin-bottom: 40px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 15px;
+            padding: 20px 30px;
+            background: white;
+            border-radius: 50px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            z-index: 1000;
+            border: 3px solid #667eea;
+        }
+        
+        .badge-container.hidden {
+            display: none;
         }
         
         .badge {
@@ -63,6 +78,30 @@
             cursor: grab;
             transition: transform 0.2s;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .badge.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .current-category-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            z-index: 999;
+            font-weight: bold;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .current-category-indicator.hidden {
+            display: none;
         }
         
         .badge:active {
@@ -99,6 +138,19 @@
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 3px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .category-title:hover {
+            color: #764ba2;
+            border-bottom-color: #764ba2;
+        }
+        
+        .category-title.active {
+            color: #764ba2;
+            border-bottom-color: #764ba2;
+            font-weight: bold;
         }
         
         .themes-grid {
@@ -114,6 +166,7 @@
             background: white;
             transition: all 0.3s;
             position: relative;
+            cursor: pointer;
         }
         
         .theme-card:hover {
@@ -133,6 +186,7 @@
             border-radius: 8px;
             margin-bottom: 10px;
             background: #f5f5f5;
+            pointer-events: none;
         }
         
         .theme-name {
@@ -157,6 +211,7 @@
             justify-content: center;
             padding: 10px;
             background: #fafafa;
+            pointer-events: none;
         }
         
         .badge-drop-zone.has-badge {
@@ -175,6 +230,7 @@
             font-size: 2em;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             cursor: pointer;
+            pointer-events: auto;
         }
         
         .submit-btn {
@@ -325,27 +381,152 @@
         .info-box li {
             margin-bottom: 5px;
         }
+        .badge-container {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        padding: 20px 30px;
+        background: white;
+        border-radius: 50px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        z-index: 1000;
+        border: 3px solid #667eea;
+    }
+
+    .next-category-btn {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        white-space: nowrap;
+        margin-left: 10px;
+    }
+
+    .next-category-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .next-category-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .prev-category-btn {
+        padding: 12px 24px;
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+        border-radius: 25px;
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        white-space: nowrap;
+        margin-right: 10px;
+    }
+
+    .prev-category-btn:hover {
+        background: #f0f4ff;
+        transform: scale(1.05);
+    }
+
+    .prev-category-btn:disabled {
+        border-color: #ccc;
+        color: #ccc;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    .next-category-btn {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    margin-left: 10px;
+    min-width: 120px; /* 버튼 최소 너비 설정 */
+}
+
+    .next-category-btn.submit-mode {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        font-size: 1.1em;
+        padding: 14px 28px;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        animation: pulse 2s infinite;
+    }
+
+    .next-category-btn.submit-mode:hover {
+        transform: scale(1.08);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        }
+        50% {
+            box-shadow: 0 4px 25px rgba(40, 167, 69, 0.7);
+        }
+    }    
+        
+        
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎭 2025 방탈출 장르별 우수 테마 투표</h1>
+        <h1>🎭 "재미로 보는" 2025 방탈출 우수 테마 투표</h1>
         <p class="subtitle">각 부문별로 금🥇·은🥈·동🥉 메달을 드래그하여 테마에 배치해주세요!</p>
+        
+        <!-- 현재 선택된 카테고리 표시 -->
+        <div id="categoryIndicator" class="current-category-indicator hidden">
+            <div id="currentCategoryText">카테고리를 선택해주세요</div>
+        </div>
+        
+        <!-- 플로팅 메달 바 -->
+        <div id="floatingBadges" class="badge-container hidden">
+            <button id="prevCategoryBtn" class="prev-category-btn">
+                ← 이전 부문
+            </button>
+            <div class="badge gold" draggable="true" data-rank="1" data-category="">🥇</div>
+            <div class="badge silver" draggable="true" data-rank="2" data-category="">🥈</div>
+            <div class="badge bronze" draggable="true" data-rank="3" data-category="">🥉</div>
+            <button id="nextCategoryBtn" class="next-category-btn">
+                다음 부문 →
+            </button>
+        </div>        
         
         <div id="votingSection">
             <div class="info-box">
                 <h3>📋 투표 방법</h3>
                 <ul>
-                    <li>각 부문별로 금🥇·은🥈·동🥉 메달을 테마 카드에 드래그하여 배치하세요</li>
+                    <li><strong>카테고리 제목을 클릭</strong>하여 투표할 부문을 선택하세요</li>
+                    <li>선택하면 하단에 <strong>금🥇·은🥈·동🥉 메달이 표시</strong>됩니다</li>
+                    <li>메달을 테마 카드에 드래그하여 배치하세요 (카드 어디든 가능)</li>
                     <li>플레이하지 않은 테마는 메달을 배치하지 않아도 됩니다</li>
                     <li>1개의 테마에만 메달을 주는 것도 가능합니다</li>
                     <li>배치한 메달을 클릭하면 다시 제거할 수 있습니다</li>
+                    <li>본 투표는 한국방탈출협회에서 진행하는 제8회 한국 방탈출 어워즈와 직접적인 연관성이 없으며 어워즈 결과에 반영되지 않습니다.</li>
+                    <li>부문별 테마 추가를 희망하시는 분은 익방이나 방마갤에 써주세요. 개추 많이 받으면 추가해드립니다.</li>
                 </ul>
             </div>
             
-            <div id="categoriesContainer"></div>
+            <div id="categoriesContainer" class="loading">테마 정보를 불러오는 중...</div>
             
-            <button class="submit-btn" onclick="submitVote()">투표 제출하기</button>
         </div>
         
         <div id="resultsSection" class="results-container">
@@ -359,96 +540,124 @@
     </div>
 
     <script>
-        // API 엔드포인트 (API 키는 서버에서 관리)
+        // 라이브러리 로딩 확인
+        function waitForLibraries() {
+            return new Promise((resolve) => {
+                const checkInterval = setInterval(() => {
+                    if (typeof FingerprintJS !== 'undefined' && typeof supabase !== 'undefined') {
+                        console.log('라이브러리 로드 완료');
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 100);
+            });
+        }
+        
+        // Supabase 클라이언트 초기화
+        const SUPABASE_URL = 'https://zucyrthaumdzgwtddren.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1Y3lydGhhdW1kemd3dGRkcmVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2MDc1NjksImV4cCI6MjA2NTE4MzU2OX0.W63uRQjwg6_GannzaLeCdIKHyGbCuob5Qc6SKaZrF3o';
+        let supabaseClient;
+        
+        // API 엔드포인트
         const API_URL = 'https://zucyrthaumdzgwtddren.supabase.co/functions/v1/vote-api';
         
-        // 테마 데이터
-        const themes = [
-            {category: '공포 부문', name: '나폴리탄', store: '둠이스케이프 1호점'},
-            {category: '공포 부문', name: '버디', store: '오늘의 한 페이지'},
-            {category: '공포 부문', name: '악녀 - 은화기숙학원', store: '러시아워 시네마틱'},
-            {category: '공포 부문', name: '피노키오', store: '지구별 방탈출 홍대어드벤쳐점'},
-            {category: '공포 부문', name: 'AYAKO', store: '후즈데어'},
-            {category: '공포 부문', name: 'Chapter 01 : 선택', store: '더챕터'},
-            {category: '공포 부문', name: 'PIG', store: '쇼룸'},
-            {category: '감성/로맨스/판타지 부문', name: '외로움과 고독사이', store: '익스플로리아 이스케이프'},
-            {category: '감성/로맨스/판타지 부문', name: '플라이 미 투 더 문', store: '룸익스케이프 인디고블루점'},
-            {category: '감성/로맨스/판타지 부문', name: '행복목욕탕', store: '상상의문 부평점'},
-            {category: '감성/로맨스/판타지 부문', name: '행운의 배달부 루시', store: '셜록홈즈 부천중동점'},
-            {category: '감성/로맨스/판타지 부문', name: 'Les Portrait', store: '초상화'},
-            {category: 'SF/액션/어드벤쳐 부문', name: '아내, 유하린 37세', store: '셜록홈즈 잠실새내점'},
-            {category: 'SF/액션/어드벤쳐 부문', name: '카부트', store: '지구별 방탈출 홍대라스트시티점'},
-            {category: 'SF/액션/어드벤쳐 부문', name: 'alone', store: '지구별 방탈출 홍대라스트시티점'},
-            {category: '스릴러/추리/미스터리 부문', name: '두껍아 두껍아 헌집줄게 새집다오', store: '토끼굴'},
-            {category: '스릴러/추리/미스터리 부문', name: '생존자', store: '넥스트에디션 건대 2호점'},
-            {category: '스릴러/추리/미스터리 부문', name: '오모테나시', store: '서울이스케이프룸 대구동성로점'},
-            {category: '스릴러/추리/미스터리 부문', name: '잔향', store: '지구별 방탈출 홍대어드벤쳐점'},
-            {category: '스릴러/추리/미스터리 부문', name: '투투 어드벤쳐', store: '후즈데어'},
-            {category: '스릴러/추리/미스터리 부문', name: 'Chapter 02 : 쿠키', store: '더챕터'},
-            {category: '스릴러/추리/미스터리 부문', name: 'NOSTALGIA VISTA', store: '키이스케이프 강남 스테이션점'},
-            {category: '문제/아케이드 부문', name: '게임의 법칙', store: '티켓 투 이스케이프'},
-            {category: '문제/아케이드 부문', name: '메가 게임', store: '룸즈에이 강남점'},
-            {category: '문제/아케이드 부문', name: '하이 맥스', store: '오아시스'},
-            {category: '문제/아케이드 부문', name: '호텔 더 게임', store: '셜록홈즈 수지구청점'},
-            {category: '문제/아케이드 부문', name: 'Escape Company', store: '이스케이프월드'},
-            {category: '코믹 부문', name: '(수)산업스파이', store: '코드이스케이프 가로수길점'},
-            {category: '코믹 부문', name: '용하다 용해!! 용팔도령', store: '오늘의 한 페이지'},
-            {category: '코믹 부문', name: 'OKCUT', store: '상상의문 수원2호점'},
-            {category: '장치연출 부문', name: '당신 없이는', store: '이머시브 스튜디오'},
-            {category: '장치연출 부문', name: '생존자', store: '넥스트에디션 건대 2호점'},
-            {category: '장치연출 부문', name: '오모테나시', store: '서울이스케이프룸 대구동성로점'},
-            {category: '장치연출 부문', name: '피노키오', store: '지구별 방탈출 홍대어드벤쳐점'},
-            {category: '장치연출 부문', name: 'AYAKO', store: '후즈데어'},
-            {category: '장치연출 부문', name: 'Chapter 01 : 선택', store: '더챕터'},
-            {category: '장치연출 부문', name: 'OKCUT', store: '상상의문 수원2호점'},
-            {category: '연기연출 부문', name: '당신 없이는', store: '이머시브 스튜디오'},
-            {category: '연기연출 부문', name: '생존자', store: '넥스트에디션 건대 2호점'},
-            {category: '연기연출 부문', name: '용하다 용해!! 용팔도령', store: '오늘의 한 페이지'},
-            {category: '연기연출 부문', name: '춘화각 : 피할 수 없는 저주', store: '상상의문 수원2호점'},
-            {category: '연기연출 부문', name: '피노키오', store: '지구별 방탈출 홍대어드벤쳐점'},
-            {category: '연기연출 부문', name: 'AYAKO', store: '후즈데어'},
-            {category: '인테리어 부문', name: '생존자', store: '넥스트에디션 건대 2호점'},
-            {category: '인테리어 부문', name: '오모테나시', store: '서울이스케이프룸 대구동성로점'},
-            {category: '인테리어 부문', name: '잔향', store: '지구별 방탈출 홍대어드벤쳐점'},
-            {category: '인테리어 부문', name: '플라이 미 투 더 문', store: '룸익스케이프 인디고블루점'},
-            {category: '인테리어 부문', name: 'AYAKO', store: '후즈데어'},
-            {category: '올해의 테마 부문', name: '메가 게임', store: '룸즈에이 강남점'},
-            {category: '올해의 테마 부문', name: '생존자', store: '넥스트에디션 건대 2호점'},
-            {category: '올해의 테마 부문', name: '오모테나시', store: '서울이스케이프룸 대구동성로점'},
-            {category: '올해의 테마 부문', name: '잔향', store: '지구별 방탈출 홍대어드벤쳐점'},
-            {category: '올해의 테마 부문', name: '피노키오', store: '지구별 방탈출 홍대어드벤쳐점'},
-            {category: '올해의 테마 부문', name: 'AYAKO', store: '후즈데어'},
-            {category: '올해의 테마 부문', name: 'Chapter 01 : 선택', store: '더챕터'}
-        ];
+        // 테마 데이터 (DB에서 로드됨)
+        let themes = [];
         
-        // 카테고리별로 그룹화
-        const categorizedThemes = {};
-        themes.forEach(theme => {
-            if (!categorizedThemes[theme.category]) {
-                categorizedThemes[theme.category] = [];
-            }
-            categorizedThemes[theme.category].push(theme);
-        });
+        // 카테고리별로 그룹화된 테마
+        let categorizedThemes = {};
+        
+        // 카테고리 순서 정의
+        const categoryOrder = [
+            'SF/액션/어드벤처 부문',
+            '감성/로맨스/판타지 부문',
+            '공포 부문',
+            '문제/아케이드 부문',
+            '스릴러/추리/미스터리 부문',
+            '코믹 부문',
+            '연기연출 부문',
+            '장치연출 부문',
+            '인테리어 부문',
+            '올해의 테마 부문'
+        ];
         
         // 투표 데이터 저장
         const voteData = {};
+        
+        // 현재 선택된 카테고리
+        let currentCategory = null;
         
         // 페이지 로드시 초기화
         let hasVoted = false;
         let fingerprint = '';
         
         async function init() {
-            // Fingerprint 생성
-            const fp = await FingerprintJS.load();
-            const result = await fp.get();
-            fingerprint = result.visitorId;
-            
-            // 투표 여부 확인
-            const voted = localStorage.getItem('hasVoted');
-            if (voted === 'true') {
-                await checkVoteStatus();
-            } else {
-                renderVotingUI();
+            try {
+                // 라이브러리 로딩 대기
+                await waitForLibraries();
+                
+                // Supabase 클라이언트 초기화
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase 클라이언트 초기화 완료');
+                
+                // Fingerprint 생성
+                const fp = await FingerprintJS.load();
+                const result = await fp.get();
+                fingerprint = result.visitorId;
+                console.log('Fingerprint 생성 완료:', fingerprint);
+                
+                // DB에서 테마 정보 로드
+                await loadThemesFromDB();
+                
+                // 투표 여부 확인
+                const voted = localStorage.getItem('hasVoted');
+                if (voted === 'true') {
+                    await checkVoteStatus();
+                } else {
+                    renderVotingUI();
+                }
+            } catch (error) {
+                console.error('초기화 오류:', error);
+                const container = document.getElementById('categoriesContainer');
+                container.innerHTML = '<div class="error">초기화 중 오류가 발생했습니다: ' + error.message + '</div>';
+            }
+        }
+        
+        async function loadThemesFromDB() {
+            try {
+                const container = document.getElementById('categoriesContainer');
+                container.innerHTML = '<div class="loading">테마 정보를 불러오는 중...</div>';
+                
+                // Supabase에서 테마 정보 조회
+                const { data, error } = await supabaseClient
+                    .from('themes')
+                    .select('*')
+                    .order('name', { ascending: true });
+                
+                if (error) {
+                    console.error('테마 로드 오류:', error);
+                    container.innerHTML = '<div class="error">테마 정보를 불러오는데 실패했습니다.</div>';
+                    return;
+                }
+                
+                themes = data;
+                
+                // 카테고리별로 그룹화
+                categorizedThemes = {};
+                themes.forEach(theme => {
+                    if (!categorizedThemes[theme.category]) {
+                        categorizedThemes[theme.category] = [];
+                    }
+                    categorizedThemes[theme.category].push(theme);
+                });
+                
+                console.log('테마 로드 완료:', themes.length, '개');
+                console.log('카테고리:', Object.keys(categorizedThemes));
+                
+            } catch (err) {
+                console.error('테마 로드 예외:', err);
+                const container = document.getElementById('categoriesContainer');
+                container.innerHTML = '<div class="error">테마 정보를 불러오는데 실패했습니다.</div>';
             }
         }
         
@@ -456,7 +665,10 @@
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
                     body: JSON.stringify({
                         action: 'check-vote',
                         fingerprint
@@ -482,26 +694,23 @@
             const container = document.getElementById('categoriesContainer');
             container.innerHTML = '';
             
-            Object.keys(categorizedThemes).forEach(category => {
+            // 정의된 순서대로 카테고리 렌더링
+            categoryOrder.forEach(category => {
+                if (!categorizedThemes[category]) return;
+                
                 const categoryDiv = document.createElement('div');
                 categoryDiv.className = 'category';
+                categoryDiv.dataset.category = category;
                 
                 const categoryTitle = document.createElement('h2');
                 categoryTitle.className = 'category-title';
-                categoryTitle.textContent = category;
+                // '올해의 테마 부문'은 '부문' 제거
+                categoryTitle.textContent = category === '올해의 테마 부문' ? '올해의 테마' : category;
+                categoryTitle.dataset.category = category;
+                categoryTitle.addEventListener('click', () => selectCategory(category));
                 categoryDiv.appendChild(categoryTitle);
                 
-                // 뱃지 컨테이너
-                const badgeContainer = document.createElement('div');
-                badgeContainer.className = 'badge-container';
-                badgeContainer.innerHTML = `
-                    <div class="badge gold" draggable="true" data-rank="1" data-category="${category}">🥇</div>
-                    <div class="badge silver" draggable="true" data-rank="2" data-category="${category}">🥈</div>
-                    <div class="badge bronze" draggable="true" data-rank="3" data-category="${category}">🥉</div>
-                `;
-                categoryDiv.appendChild(badgeContainer);
-                
-                // 테마 그리드
+                // 테마 그리드 (배지 컨테이너 제거)
                 const themesGrid = document.createElement('div');
                 themesGrid.className = 'themes-grid';
                 
@@ -510,14 +719,17 @@
                     themeCard.className = 'theme-card';
                     themeCard.dataset.category = category;
                     themeCard.dataset.theme = theme.name;
-                    themeCard.dataset.store = theme.store;
+                    themeCard.dataset.store = theme.store_name || theme.store || '매장 정보 없음';
+                    
+                    // 포스터 URL 사용 (없으면 기본 이미지)
+                    const posterUrl = theme.poster_url || `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='200'%3E%3Crect fill='%23f0f0f0' width='280' height='200'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999'%3E포스터 준비중%3C/text%3E%3C/svg%3E`;
                     
                     themeCard.innerHTML = `
-                        <img class="theme-poster" src="ai/crm/포스터/${theme.name}.jpg" 
+                        <img class="theme-poster" src="${posterUrl}" 
                              onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22200%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22280%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22%3E포스터 준비중%3C/text%3E%3C/svg%3E'" 
                              alt="${theme.name}">
                         <div class="theme-name">${theme.name}</div>
-                        <div class="store-name">${theme.store}</div>
+                        <div class="store-name">${theme.store_name || theme.store || '매장 정보 없음'}</div>
                         <div class="badge-drop-zone" data-category="${category}" data-theme="${theme.name}">
                             메달을 드래그하여 배치하세요
                         </div>
@@ -532,21 +744,135 @@
             
             // 드래그 앤 드롭 이벤트 설정
             setupDragAndDrop();
+            
+            // 버튼 이벤트 리스너 설정
+            const prevBtn = document.getElementById('prevCategoryBtn');
+            const nextBtn = document.getElementById('nextCategoryBtn');
+
+            prevBtn.onclick = goToPreviousCategory;
+            nextBtn.onclick = goToNextCategory;
+
+            
+            // 첫 번째 카테고리 자동 선택
+            if (categoryOrder.length > 0 && categorizedThemes[categoryOrder[0]]) {
+                selectCategory(categoryOrder[0]);
+            }
+        }
+        
+        // 카테고리 선택 함수
+        function selectCategory(category) {
+            currentCategory = category;
+            
+            // 모든 카테고리 제목의 active 클래스 제거
+            document.querySelectorAll('.category-title').forEach(title => {
+                title.classList.remove('active');
+            });
+            
+            // 선택된 카테고리 제목에 active 클래스 추가
+            const selectedTitle = document.querySelector(`.category-title[data-category="${category}"]`);
+            if (selectedTitle) {
+                selectedTitle.classList.add('active');
+                // 선택된 카테고리로 스크롤
+                selectedTitle.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            
+            // 플로팅 배지 바 업데이트
+            const floatingBadges = document.getElementById('floatingBadges');
+            const badges = floatingBadges.querySelectorAll('.badge');
+            badges.forEach(badge => {
+                badge.dataset.category = category;
+                badge.classList.remove('disabled');
+                
+                // 이미 배치된 배지는 비활성화
+                const rank = badge.dataset.rank;
+                const existingBadge = document.querySelector(
+                    `.placed-badge[data-category="${category}"][data-rank="${rank}"]`
+                );
+                if (existingBadge) {
+                    badge.classList.add('disabled');
+                }
+            });
+            
+            floatingBadges.classList.remove('hidden');
+            
+            // 카테고리 인디케이터 업데이트
+            const indicator = document.getElementById('categoryIndicator');
+            const indicatorText = document.getElementById('currentCategoryText');
+            indicatorText.textContent = category === '올해의 테마 부문' ? '올해의 테마' : category;
+            indicator.classList.remove('hidden');
+
+            // 네비게이션 버튼 상태 업데이트 (이 줄 추가)
+            updateNavigationButtons();
+
+        }
+        
+        // 다음 카테고리로 이동
+        function goToNextCategory() {
+            if (!currentCategory) return;
+
+            const currentIndex = categoryOrder.indexOf(currentCategory);
+            if (currentIndex < categoryOrder.length - 1) {
+                const nextCategory = categoryOrder[currentIndex + 1];
+                selectCategory(nextCategory);
+            }
+        }
+
+        // 이전 카테고리로 이동
+        function goToPreviousCategory() {
+            if (!currentCategory) return;
+
+            const currentIndex = categoryOrder.indexOf(currentCategory);
+            if (currentIndex > 0) {
+                const prevCategory = categoryOrder[currentIndex - 1];
+                selectCategory(prevCategory);
+            }
+        }
+
+        // 버튼 상태 업데이트
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prevCategoryBtn');
+            const nextBtn = document.getElementById('nextCategoryBtn');
+
+            if (!currentCategory) {
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+                return;
+            }
+
+            const currentIndex = categoryOrder.indexOf(currentCategory);
+
+            // 첫 번째 카테고리면 이전 버튼 비활성화
+            prevBtn.disabled = currentIndex === 0;
+
+            // 마지막 카테고리면 제출 버튼으로 변경
+            if (currentIndex === categoryOrder.length - 1) {
+                nextBtn.textContent = '✅ 투표 제출하기';
+                nextBtn.classList.add('submit-mode');
+                nextBtn.disabled = false;
+                nextBtn.onclick = submitVote; // 클릭 이벤트를 제출로 변경
+            } else {
+                nextBtn.textContent = '다음 부문 →';
+                nextBtn.classList.remove('submit-mode');
+                nextBtn.disabled = false;
+                nextBtn.onclick = goToNextCategory; // 클릭 이벤트를 다음으로 변경
+            }
         }
         
         function setupDragAndDrop() {
-            const badges = document.querySelectorAll('.badge');
-            const dropZones = document.querySelectorAll('.badge-drop-zone');
+            const floatingBadges = document.getElementById('floatingBadges');
+            const badges = floatingBadges.querySelectorAll('.badge');
+            const themeCards = document.querySelectorAll('.theme-card');
             
             badges.forEach(badge => {
                 badge.addEventListener('dragstart', handleDragStart);
                 badge.addEventListener('dragend', handleDragEnd);
             });
             
-            dropZones.forEach(zone => {
-                zone.addEventListener('dragover', handleDragOver);
-                zone.addEventListener('drop', handleDrop);
-                zone.addEventListener('dragleave', handleDragLeave);
+            // 테마 카드 전체에 드롭 이벤트 적용
+            themeCards.forEach(card => {
+                card.addEventListener('dragover', handleCardDragOver);
+                card.addEventListener('drop', handleCardDrop);
+                card.addEventListener('dragleave', handleCardDragLeave);
             });
         }
         
@@ -562,32 +888,45 @@
             e.target.classList.remove('dragging');
         }
         
-        function handleDragOver(e) {
+        function handleCardDragOver(e) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
             
-            const category = draggedElement.dataset.category;
-            const zoneCategory = e.currentTarget.dataset.category;
+            if (!draggedElement) return;
             
-            if (category === zoneCategory && !e.currentTarget.classList.contains('has-badge')) {
-                e.currentTarget.closest('.theme-card').classList.add('drop-zone-active');
+            const category = draggedElement.dataset.category;
+            const cardCategory = e.currentTarget.dataset.category;
+            const dropZone = e.currentTarget.querySelector('.badge-drop-zone');
+            
+            if (category === cardCategory && !dropZone.classList.contains('has-badge')) {
+                e.currentTarget.classList.add('drop-zone-active');
             }
         }
         
-        function handleDragLeave(e) {
-            e.currentTarget.closest('.theme-card').classList.remove('drop-zone-active');
+        function handleCardDragLeave(e) {
+            // relatedTarget이 자식 요소인지 확인
+            if (e.currentTarget.contains(e.relatedTarget)) {
+                return;
+            }
+            e.currentTarget.classList.remove('drop-zone-active');
         }
         
-        function handleDrop(e) {
+        function handleCardDrop(e) {
             e.preventDefault();
-            e.currentTarget.closest('.theme-card').classList.remove('drop-zone-active');
+            e.stopPropagation();
+            
+            const themeCard = e.currentTarget;
+            themeCard.classList.remove('drop-zone-active');
+            
+            if (!draggedElement) return;
             
             const category = draggedElement.dataset.category;
-            const zoneCategory = e.currentTarget.dataset.category;
+            const cardCategory = themeCard.dataset.category;
             const rank = draggedElement.dataset.rank;
-            const theme = e.currentTarget.dataset.theme;
+            const theme = themeCard.dataset.theme;
+            const dropZone = themeCard.querySelector('.badge-drop-zone');
             
-            if (category !== zoneCategory || e.currentTarget.classList.contains('has-badge')) {
+            if (category !== cardCategory || dropZone.classList.contains('has-badge')) {
                 return;
             }
             
@@ -604,11 +943,11 @@
                 delete voteData[`${category}|${oldTheme}`];
             }
             
-            // 뱃지 배치
+            // 배지 배치
             const badgeClass = rank === '1' ? 'gold' : rank === '2' ? 'silver' : 'bronze';
             const badgeIcon = rank === '1' ? '🥇' : rank === '2' ? '🥈' : '🥉';
             
-            e.currentTarget.innerHTML = `
+            dropZone.innerHTML = `
                 <div class="placed-badge ${badgeClass}" 
                      data-category="${category}" 
                      data-rank="${rank}"
@@ -616,26 +955,41 @@
                     ${badgeIcon}
                 </div>
             `;
-            e.currentTarget.classList.add('has-badge');
+            dropZone.classList.add('has-badge');
             
             // 투표 데이터 저장
             voteData[`${category}|${theme}`] = {
                 category,
                 theme,
-                store: e.currentTarget.closest('.theme-card').dataset.store,
+                store: themeCard.dataset.store,
                 rank: parseInt(rank)
             };
+            
+            // 플로팅 배지 바의 해당 배지 비활성화
+            draggedElement.classList.add('disabled');
+            
+            console.log('메달 배치:', category, theme, rank);
         }
         
         function removeBadge(badge) {
             const zone = badge.parentElement;
             const category = badge.dataset.category;
+            const rank = badge.dataset.rank;
             const theme = zone.dataset.theme;
             
             zone.innerHTML = '메달을 드래그하여 배치하세요';
             zone.classList.remove('has-badge');
             
             delete voteData[`${category}|${theme}`];
+            
+            // 플로팅 배지 바의 해당 배지 재활성화
+            if (category === currentCategory) {
+                const floatingBadges = document.getElementById('floatingBadges');
+                const floatingBadge = floatingBadges.querySelector(`.badge[data-rank="${rank}"]`);
+                if (floatingBadge) {
+                    floatingBadge.classList.remove('disabled');
+                }
+            }
         }
         
         async function submitVote() {
@@ -643,21 +997,28 @@
                 alert('최소 1개 이상의 테마에 메달을 배치해주세요!');
                 return;
             }
-            
+
             if (!confirm('투표를 제출하시겠습니까? 제출 후에는 수정할 수 없습니다.')) {
                 return;
             }
-            
+
             try {
+                // 플로팅 바 숨기기
+                const floatingBadges = document.getElementById('floatingBadges');
+                floatingBadges.classList.add('hidden');
+
                 // IP 주소 가져오기
                 const ipResponse = await fetch('https://api.ipify.org?format=json');
                 const ipData = await ipResponse.json();
                 const ipAddress = ipData.ip;
-                
+
                 // 투표 제출
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
                     body: JSON.stringify({
                         action: 'submit-vote',
                         ipAddress,
@@ -665,27 +1026,30 @@
                         votes: Object.values(voteData)
                     })
                 });
-                
                 if (response.status === 409) {
                     alert('이미 투표하셨습니다!');
                     localStorage.setItem('hasVoted', 'true');
                     await showResults();
                     return;
                 }
-                
+
                 const data = await response.json();
-                
+
                 if (data.error) {
                     throw new Error(data.error);
                 }
-                
+
                 localStorage.setItem('hasVoted', 'true');
                 alert('투표가 완료되었습니다! 결과를 확인하세요.');
                 await showResults();
-                
+
             } catch (error) {
                 console.error('투표 제출 오류:', error);
                 alert('투표 제출 중 오류가 발생했습니다. 다시 시도해주세요.');
+
+                // 오류 시 플로팅 바 다시 보이기
+                const floatingBadges = document.getElementById('floatingBadges');
+                floatingBadges.classList.remove('hidden');
             }
         }
         
@@ -700,15 +1064,23 @@
                 // 카테고리별 결과 조회
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
                     body: JSON.stringify({ action: 'get-results' })
-                });
-                
+                });                
                 const data = await response.json();
                 
                 if (data.error) throw new Error(data.error);
                 
-                const results = data.results;
+                const results = data.results || [];
+                
+                // 결과가 없는 경우 처리
+                if (results.length === 0) {
+                    resultsContainer.innerHTML = '<div class="info-box"><h3>아직 투표 결과가 없습니다</h3></div>';
+                    return;
+                }
                 
                 // 카테고리별로 그룹화
                 const resultsByCategory = {};
@@ -719,15 +1091,18 @@
                     resultsByCategory[result.category].push(result);
                 });
                 
-                // 결과 렌더링
+                // 결과 렌더링 (정의된 순서대로)
                 resultsContainer.innerHTML = '';
-                Object.keys(resultsByCategory).forEach(category => {
+                categoryOrder.forEach(category => {
+                    if (!resultsByCategory[category]) return;
+                    
                     const categoryDiv = document.createElement('div');
                     categoryDiv.className = 'result-category';
                     
                     const title = document.createElement('h2');
                     title.className = 'category-title';
-                    title.textContent = category;
+                    // '올해의 테마 부문'은 '부문' 제거
+                    title.textContent = category === '올해의 테마 부문' ? '올해의 테마' : category;
                     categoryDiv.appendChild(title);
                     
                     resultsByCategory[category].forEach((result, index) => {
@@ -768,10 +1143,12 @@
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
                     body: JSON.stringify({ action: 'get-store-rankings' })
-                });
-                
+                });                
                 const data = await response.json();
                 
                 if (data.error) throw new Error(data.error);
@@ -801,7 +1178,11 @@
         }
         
         // 페이지 로드시 초기화
-        init();
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>
