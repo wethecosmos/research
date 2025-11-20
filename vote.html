@@ -665,6 +665,11 @@
         
         async function checkVoteStatus() {
             try {
+                // IP 주소 먼저 가져오기
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                const ipAddress = ipData.ip;
+
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 
@@ -673,12 +678,13 @@
                     },
                     body: JSON.stringify({
                         action: 'check-vote',
-                        fingerprint
+                        fingerprint,
+                        ipAddress  // IP 주소 추가!
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.hasVoted) {
                     hasVoted = true;
                     await showResults();
@@ -694,7 +700,7 @@
         
         function renderVotingUI() {
             const container = document.getElementById('categoriesContainer');
-            
+            container.innerHTML = '';
             
             // 정의된 순서대로 카테고리 렌더링
             categoryOrder.forEach(category => {
@@ -1212,7 +1218,7 @@
                 });
                 
                 // 결과 렌더링 (정의된 순서대로)
-                resultsContainer.innerHTML = '';
+                
                 categoryOrder.forEach(category => {
                     if (!resultsByCategory[category]) return;
                     
